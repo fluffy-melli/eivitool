@@ -16,13 +16,13 @@ class AudioVisualizer : JPanel() {
     private val bufferSize = 1024
     private val maxAmplitude = 32768.0
     private var line: TargetDataLine? = null
+    private val timer: Timer
 
     init {
         preferredSize = Dimension(maxBars * 4, 25)
         background = Color.BLACK
-        Timer(16) {
-            repaint()
-        }.start()
+        timer = Timer(16) { repaint() }
+        timer.start()
     }
 
     override fun paintComponent(g: Graphics) {
@@ -49,11 +49,13 @@ class AudioVisualizer : JPanel() {
                 line.start()
                 this.line = line
                 val buffer = ByteArray(bufferSize)
-
                 while (true) {
                     val bytesRead = line.read(buffer, 0, buffer.size)
                     if (bytesRead > 0) {
-                        volumeLevel = calculateVolumeLevel(buffer)
+                        val newVolumeLevel = calculateVolumeLevel(buffer)
+                        if (newVolumeLevel != volumeLevel) {
+                            volumeLevel = newVolumeLevel
+                        }
                     }
                 }
             }
