@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.fluffy-melli.Eivitool"
-version = "0.1.2-SNAPSHOT"
+version = "0.1.3-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -14,10 +14,9 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.jcodec:jcodec:0.2.5")
     implementation("org.jcodec:jcodec-javase:0.2.5")
-    implementation("org.bytedeco:javacv:1.5.9") {
-        exclude(group = "org.bytedeco", module = "javacv-platform")
-    }
+    implementation("org.bytedeco:javacv:1.5.9")
     implementation("org.bytedeco:ffmpeg:6.0-1.5.9")
+    implementation("org.bytedeco:ffmpeg-platform:6.0-1.5.9")
     implementation("com.github.kwhat:jnativehook:2.2.2")
 }
 
