@@ -31,7 +31,7 @@ fun DrawTextRightOnImage(image: BufferedImage, text: String, x: Int, y: Int): Bu
     return newImage
 }
 
-fun TruncatePath(path: String, maxLength: Int = 7): String {
+fun TruncatePath(path: String, maxLength: Int = 25): String {
     return if (path.length > maxLength) {
         "...${path.takeLast(maxLength)}"
     } else {

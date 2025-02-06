@@ -11,7 +11,9 @@ data class AppConfig(
     var recordResolution: List<Int> = listOf(1920, 1080),
     var recordFolderPath: String = "./",
     var recordAudioSystem: Int = 0,
-    var recordResolutionIndex: Int = 0
+    var recordResolutionIndex: Int = 0,
+    var recordVideoBitrateKB: Int = 400,
+    var recordAudioBitrateKB: Int = 128,
 )
 
 object Config {

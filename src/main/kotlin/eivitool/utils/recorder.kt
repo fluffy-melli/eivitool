@@ -27,18 +27,18 @@ class Recorder {
         }
     }
 
-    fun start(display: Int, fps: Int, width: Int, height: Int, audioDevice: Mixer.Info, outpath: String, outfile: String) {
+    fun start(config:AppConfig, audioDevice: Mixer.Info, outfile: String) {
         if (isRecording) return
         isRecording = true
-        recorder = FFmpegFrameRecorder("${outpath}/$outfile.mp4", width, height, 2).apply {
+        recorder = FFmpegFrameRecorder("${config.recordFolderPath}/$outfile.mp4", config.recordResolution[0], config.recordResolution[1], 2).apply {
             format = "mp4"
             videoCodec = avcodec.AV_CODEC_ID_H264
-            setVideoBitrate(4000000)
-            setFrameRate(fps.toDouble())
+            setVideoBitrate(config.recordVideoBitrateKB*1000)
+            setFrameRate(config.recordFPS.toDouble())
 
             setAudioChannels(2)
             setAudioCodec(avcodec.AV_CODEC_ID_AAC)
-            setAudioBitrate(128000)
+            setAudioBitrate(config.recordAudioBitrateKB*1000)
 
             setVideoOption("bEnableFrameSkip", "1")
 
@@ -46,7 +46,7 @@ class Recorder {
         }
 
         startAudio(audioDevice)
-        startVideo(display, fps, width, height)
+        startVideo(config.recordDisplay, config.recordFPS, config.recordResolution[0], config.recordResolution[1])
     }
 
     private fun startAudio(audioDevice: Mixer.Info) {

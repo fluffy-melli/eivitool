@@ -75,8 +75,7 @@ class App : JFrame("Eivitool") {
             val fpsInput = JTextField("60", 5)
             fpsInput.text = "${config.recordFPS}"
             fpsInput.addActionListener {
-                val fps = fpsInput.text.toIntOrNull()?.coerceIn(1, 240) ?: 60
-                config.recordFPS = fps
+                config.recordFPS = fpsInput.text.toIntOrNull()?.coerceIn(1, 240) ?: 60
                 Config.save(config)
                 SendDesktopAlarm("출력 FPS 변경", "${config.recordFPS} 으로 변경되었어요")
                 restartTimer()
@@ -97,14 +96,14 @@ class App : JFrame("Eivitool") {
                     config.recordFolderPath = folderChooser.selectedFile.absolutePath
                     folderChooserButton.text = TruncatePath(config.recordFolderPath)
                     Config.save(config)
-                    SendDesktopAlarm("출력 폴더 변경", "새로운 폴더 경로: ${config.recordFolderPath}")
+                    SendDesktopAlarm("녹화 저장 경로", "새로운 폴더 경로: ${config.recordFolderPath}")
                 }
             }
 
             recordButton.addActionListener {
                 if (!recorder.isRecording) {
                     recordButton.text = "녹화 종료"
-                    recorder.start(config.recordDisplay, config.recordFPS, config.recordResolution[0],config.recordResolution[1],deviceList[config.recordAudioSystem], config.recordFolderPath, Timestamp())
+                    recorder.start(config,deviceList[config.recordAudioSystem], Timestamp())
                     SendDesktopAlarm("화면 녹화 시작", "화면 녹화가 시작되었습니다.")
                 } else {
                     recordButton.text = "녹화 시작"
@@ -112,6 +111,26 @@ class App : JFrame("Eivitool") {
                     recorder.stop()
                     SendDesktopAlarm("인코딩 성공", "인코딩이 성공적으로 실행되었어요.")
                 }
+            }
+
+            val vbitLabel = JLabel("비디오 비트레이트 (KB):").apply {}
+            val vbitInput = JTextField("400", 5)
+            vbitInput.text = "${config.recordVideoBitrateKB}"
+            vbitInput.addActionListener {
+                config.recordVideoBitrateKB = vbitInput.text.toIntOrNull()?.coerceAtLeast(1) ?: 400
+                Config.save(config)
+                SendDesktopAlarm("비디오 비트레이트 변경", "${config.recordVideoBitrateKB}KB 으로 변경되었어요")
+                restartTimer()
+            }
+
+            val abitLabel = JLabel("오디오 비트레이트 (KB):").apply {}
+            val abitInput = JTextField("128", 5)
+            abitInput.text = "${config.recordAudioBitrateKB}"
+            abitInput.addActionListener {
+                config.recordAudioBitrateKB = abitInput.text.toIntOrNull()?.coerceAtLeast(1) ?: 128
+                Config.save(config)
+                SendDesktopAlarm("오디오 비트레이트 변경", "${config.recordAudioBitrateKB}KB 으로 변경되었어요")
+                restartTimer()
             }
 
             val panel = JPanel()
@@ -142,20 +161,32 @@ class App : JFrame("Eivitool") {
             gbc.gridx = 1
             panel.add(displayDropdown, gbc)
 
-            gbc.gridx = 3
-            gbc.gridy = 0
-            panel.add(JLabel("출력 폴더 선택:"), gbc)
-            gbc.gridx = 4
+            gbc.gridx = 0
+            gbc.gridy = 3
+            panel.add(JLabel("녹화 저장 경로:"), gbc)
+            gbc.gridx = 1
             panel.add(folderChooserButton, gbc)
 
             gbc.gridx = 3
+            gbc.gridy = 0
+            panel.add(vbitLabel, gbc)
+            gbc.gridx = 4
+            panel.add(vbitInput, gbc)
+
+            gbc.gridx = 3
             gbc.gridy = 1
+            panel.add(abitLabel, gbc)
+            gbc.gridx = 4
+            panel.add(abitInput, gbc)
+
+            gbc.gridx = 3
+            gbc.gridy = 2
             panel.add(JLabel("출력 해상도 선택:"), gbc)
             gbc.gridx = 4
             panel.add(resolutionDropdown, gbc)
 
             gbc.gridx = 3
-            gbc.gridy = 2
+            gbc.gridy = 3
             panel.add(fpsLabel, gbc)
             gbc.gridx = 4
             panel.add(fpsInput, gbc)
@@ -174,7 +205,7 @@ class App : JFrame("Eivitool") {
             val deviceList = AudioSystem.getMixerInfo()
             if (!recorder.isRecording) {
                 recordButton.text = "녹화 종료"
-                recorder.start(config.recordDisplay, config.recordFPS, config.recordResolution[0],config.recordResolution[1],deviceList[config.recordAudioSystem], config.recordFolderPath, Timestamp())
+                recorder.start(config,deviceList[config.recordAudioSystem], Timestamp())
                 SendDesktopAlarm("화면 녹화 시작", "화면 녹화가 시작되었습니다.")
             } else {
                 recordButton.text = "녹화 시작"
