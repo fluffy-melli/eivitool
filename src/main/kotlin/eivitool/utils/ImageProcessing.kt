@@ -28,7 +28,7 @@ fun PaddingImage(original: BufferedImage, targetWidth: Int, targetHeight: Int): 
     return resizedImage
 }
 
-fun ResizeImageFast(img: BufferedImage, w: Int, h: Int): BufferedImage {
+fun ResizeImage(img: BufferedImage, w: Int, h: Int): BufferedImage {
     val resized = BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR)
     val g2d = resized.createGraphics()
     g2d.drawImage(img, 0, 0, w, h, null)

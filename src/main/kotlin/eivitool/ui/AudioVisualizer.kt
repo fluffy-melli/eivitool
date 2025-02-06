@@ -1,6 +1,6 @@
 package eivitool.ui
 
-import eivitool.utils.GetTargetDataLine
+import eivitool.utils.GetAudioDataLine
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
@@ -25,6 +25,43 @@ class AudioVisualizer : JPanel() {
         timer.start()
     }
 
+    fun start(device: Mixer.Info) {
+        stop()
+        Thread {
+            val (line) = GetAudioDataLine(device)
+            if (line != null) {
+                line.start()
+                this.line = line
+                val buffer = ByteArray(bufferSize)
+                while (true) {
+                    val bytesRead = line.read(buffer, 0, buffer.size)
+                    if (bytesRead > 0) {
+                        val newVolumeLevel = calculate(buffer)
+                        if (newVolumeLevel != volumeLevel) {
+                            volumeLevel = newVolumeLevel
+                        }
+                    }
+                }
+            }
+        }.start()
+    }
+
+    private fun stop() {
+        line?.stop()
+        line?.close()
+        line = null
+    }
+
+    private fun calculate(buffer: ByteArray): Double {
+        var sum = 0.0
+        for (i in buffer.indices step 2) {
+            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF)).toShort()
+            sum += sample * sample
+        }
+        val rms = sqrt(sum / (buffer.size / 2))
+        return 20 * log10(rms / maxAmplitude)
+    }
+
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         g.color = Color.DARK_GRAY
@@ -39,42 +76,5 @@ class AudioVisualizer : JPanel() {
         g.fillRect(0, 0, normalized * 4, 10)
         g.color = Color.WHITE
         g.drawString("%.1f dB".format(volumeLevel), 0, 20)
-    }
-
-    fun startAudioCapture(device: Mixer.Info) {
-        stopAudioCapture()
-        Thread {
-            val (line) = GetTargetDataLine(device)
-            if (line != null) {
-                line.start()
-                this.line = line
-                val buffer = ByteArray(bufferSize)
-                while (true) {
-                    val bytesRead = line.read(buffer, 0, buffer.size)
-                    if (bytesRead > 0) {
-                        val newVolumeLevel = calculateVolumeLevel(buffer)
-                        if (newVolumeLevel != volumeLevel) {
-                            volumeLevel = newVolumeLevel
-                        }
-                    }
-                }
-            }
-        }.start()
-    }
-
-    private fun stopAudioCapture() {
-        line?.stop()
-        line?.close()
-        line = null
-    }
-
-    private fun calculateVolumeLevel(buffer: ByteArray): Double {
-        var sum = 0.0
-        for (i in buffer.indices step 2) {
-            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF)).toShort()
-            sum += sample * sample
-        }
-        val rms = sqrt(sum / (buffer.size / 2))
-        return 20 * log10(rms / maxAmplitude)
     }
 }

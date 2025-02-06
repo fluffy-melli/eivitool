@@ -3,7 +3,7 @@ package eivitool.utils
 import java.awt.*
 import java.awt.image.BufferedImage
 
-fun GetDisplayList(): List<Triple<Int, String, String>> {
+fun getDisplayList(): List<Triple<Int, String, String>> {
     val screens = GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices
     return screens.mapIndexed { index, device ->
         val bounds = device.defaultConfiguration.bounds
@@ -11,7 +11,7 @@ fun GetDisplayList(): List<Triple<Int, String, String>> {
     }
 }
 
-fun GetDisplayCapture(display: Int): BufferedImage {
+fun getDisplayCapture(display: Int): BufferedImage {
     val screens = GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices
     if (display < 0 || display >= screens.size) {
         throw IllegalArgumentException("Invalid display index: $display (total ${screens.size})")

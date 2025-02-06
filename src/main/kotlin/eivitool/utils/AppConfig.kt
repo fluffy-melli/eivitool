@@ -6,13 +6,13 @@ import com.google.gson.reflect.TypeToken
 import java.io.File
 
 data class AppConfig(
-    var recordFPS: Int = 60,
+    var recordFPS: Int = 30,
     var recordDisplay: Int = 0,
     var recordResolution: List<Int> = listOf(1920, 1080),
     var recordFolderPath: String = "./",
     var recordAudioSystem: Int = 0,
     var recordResolutionIndex: Int = 0,
-    var recordVideoBitrateKB: Int = 400,
+    var recordVideoBitrateKB: Int = 200,
     var recordAudioBitrateKB: Int = 128,
 )
 

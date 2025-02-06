@@ -5,11 +5,10 @@ import org.bytedeco.javacv.FFmpegFrameRecorder
 import org.bytedeco.javacv.Java2DFrameConverter
 import java.awt.*
 import java.io.*
-import java.nio.ShortBuffer
 import java.util.concurrent.Executors
 import javax.sound.sampled.*
 
-class Recorder {
+class SystemRecorder {
     @Volatile
     var isRecording = false
     private var videoThread: Thread? = null
@@ -33,43 +32,37 @@ class Recorder {
         recorder = FFmpegFrameRecorder("${config.recordFolderPath}/$outfile.mp4", config.recordResolution[0], config.recordResolution[1], 2).apply {
             format = "mp4"
             videoCodec = avcodec.AV_CODEC_ID_H264
-            setVideoBitrate(config.recordVideoBitrateKB*1000)
-            setFrameRate(config.recordFPS.toDouble())
+            videoBitrate = config.recordVideoBitrateKB*1000
+            frameRate = config.recordFPS.toDouble()
 
-            setAudioChannels(2)
-            setAudioCodec(avcodec.AV_CODEC_ID_AAC)
-            setAudioBitrate(config.recordAudioBitrateKB*1000)
+            audioChannels = 2
+            audioCodec = avcodec.AV_CODEC_ID_AAC
+            audioBitrate = config.recordAudioBitrateKB*1000
 
             setVideoOption("bEnableFrameSkip", "1")
 
             start()
         }
 
-        startAudio(audioDevice)
-        startVideo(config.recordDisplay, config.recordFPS, config.recordResolution[0], config.recordResolution[1])
+        startAudioRecorder(audioDevice)
+        startVideoRecorder(config.recordDisplay, config.recordFPS, config.recordResolution[0], config.recordResolution[1])
     }
 
-    private fun startAudio(audioDevice: Mixer.Info) {
-        val (line, audioFormat) = GetTargetDataLine(audioDevice)
+    private fun startAudioRecorder(audioDevice: Mixer.Info) {
+        val (line, audioFormat) = GetAudioDataLine(audioDevice)
         if (line != null && audioFormat != null) {
             line.start()
             val buffer = ByteArray(2048)
-            val byteArrayOutputStream = ByteArrayOutputStream()
+            val outputStream = ByteArrayOutputStream()
             audioThread = Thread {
                 try {
                     while (isRecording) {
                         val bytesRead = line.read(buffer, 0, buffer.size)
                         if (bytesRead > 0) {
-                            byteArrayOutputStream.write(buffer, 0, bytesRead)
+                            outputStream.write(buffer, 0, bytesRead)
                         }
                     }
-                    val audioData = byteArrayOutputStream.toByteArray()
-                    val samples = ShortArray(audioData.size / 2)
-                    for (i in audioData.indices step 2) {
-                        samples[i / 2] = ((audioData[i + 1].toInt() shl 8) or (audioData[i].toInt() and 0xFF)).toShort()
-                    }
-                    val buffer = ShortBuffer.wrap(samples)
-                    recorder?.recordSamples(audioFormat.sampleRate.toInt(), audioFormat.channels, buffer)
+                    recorder?.recordSamples(audioFormat.sampleRate.toInt(), audioFormat.channels, audioBuffer(outputStream))
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -78,7 +71,7 @@ class Recorder {
     }
 
 
-    private fun startVideo(display: Int, fps: Int, width: Int, height: Int) {
+    private fun startVideoRecorder(display: Int, fps: Int, width: Int, height: Int) {
         videoThread = Thread {
             val frameTimeNanos = 1_000_000_000L / fps
             try {
@@ -88,7 +81,7 @@ class Recorder {
                     executor.submit {
                         try {
                             val image = robot.createScreenCapture(bounds)
-                            val resizedImage = ResizeImageFast(image, width, height)
+                            val resizedImage = ResizeImage(image, width, height)
                             val converter = Java2DFrameConverter()
                             val frame = converter.convert(resizedImage)
                             recorder?.record(frame)
