@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.fluffy-melli.Eivitool"
-version = "0.1.3-SNAPSHOT"
+version = "0.1.5-SNAPSHOT"
 
 repositories {
     mavenCentral()

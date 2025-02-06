@@ -10,6 +10,7 @@ import javax.sound.sampled.*
 
 class SystemRecorder {
     @Volatile
+    var startTime = 0L
     var isRecording = false
     private var videoThread: Thread? = null
     private var audioThread: Thread? = null
@@ -26,9 +27,18 @@ class SystemRecorder {
         }
     }
 
+    fun afterTime(): String {
+        if (!isRecording) {
+            return timeFormat(0)
+        }
+        val elapsedTime = System.currentTimeMillis() - startTime
+        return timeFormat(elapsedTime / 1000)
+    }
+
     fun start(config:AppConfig, audioDevice: Mixer.Info, outfile: String) {
         if (isRecording) return
         isRecording = true
+        startTime = System.currentTimeMillis()
         recorder = FFmpegFrameRecorder("${config.recordFolderPath}/$outfile.mp4", config.recordResolution[0], config.recordResolution[1], 2).apply {
             format = "mp4"
             videoCodec = avcodec.AV_CODEC_ID_H264

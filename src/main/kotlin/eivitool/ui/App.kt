@@ -15,17 +15,21 @@ class App : JFrame("Eivitool") {
     private var config = Config.load()
     private val audioVisualizer = AudioVisualizer()
     private val recordButton = JButton("녹화 시작")
+    private val timeLabel: JLabel
+    private val cpuLabel: JLabel
+    private val memoryeLabel: JLabel
+
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
-        setSize(800, 630)
+        setSize(800, 655)
         setLocationRelativeTo(null)
         layout = BorderLayout()
 
         val topPanel = JPanel().apply {
             preferredSize = Dimension(this.width, 25)
             layout = BorderLayout()
-            background = Color(34, 34, 34)
+            background = Color(30, 31, 34)
 
             val settingsButton = JButton("설정").apply {
                 addActionListener {
@@ -40,14 +44,14 @@ class App : JFrame("Eivitool") {
         val middlePanel = JScrollPane(label).apply {
             horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
             verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_NEVER
-            preferredSize = Dimension(this.width, this.height - 165)
-            background = Color(34, 34, 34)
+            preferredSize = Dimension(this.width, this.height - 140)
+            background = Color(30, 31, 34)
         }
 
         val bottomPanel = JPanel().apply {
-            preferredSize = Dimension(this.width, 140)
+            preferredSize = Dimension(this.width, 115)
             layout = FlowLayout(FlowLayout.LEFT)
-            background = Color.BLACK
+            background = Color(43, 45, 48)
 
             recordButton.addActionListener {
                 if (!systemRecorder.isRecording) {
@@ -78,9 +82,63 @@ class App : JFrame("Eivitool") {
             add(recordButton, gbc)
         }
 
+        val infoPanel = JPanel().apply {
+            preferredSize = Dimension(this.width, 25)
+            layout = FlowLayout(FlowLayout.RIGHT)
+            background = Color(30, 31, 34)
+
+            timeLabel = JLabel("00:00:00").apply {
+                foreground = Color.WHITE
+            }
+
+            cpuLabel = JLabel("CPU: 0.00%").apply {
+                foreground = Color.WHITE
+            }
+
+            memoryeLabel = JLabel("Heap: 0 Byte").apply {
+                foreground = Color.WHITE
+            }
+
+            val gbc = GridBagConstraints().apply {
+                insets = Insets(10, 30, 10, 30)
+                anchor = GridBagConstraints.WEST
+                fill = GridBagConstraints.HORIZONTAL
+            }
+
+            val line1 = JLabel("|").apply {
+                foreground = Color.WHITE
+            }
+
+            val line2 = JLabel("|").apply {
+                foreground = Color.WHITE
+            }
+
+            gbc.gridx = 0
+            add(timeLabel, gbc)
+
+            gbc.gridx = 1
+            add(line1, gbc)
+
+            gbc.gridx = 2
+            add(memoryeLabel, gbc)
+
+            gbc.gridx = 3
+            add(line2, gbc)
+
+            gbc.gridx = 4
+            add(cpuLabel, gbc)
+
+        }
+
+        val contentPanel = JPanel().apply {
+            layout = BoxLayout(this, BoxLayout.Y_AXIS)
+            add(bottomPanel)
+            add(infoPanel)
+        }
+
         add(topPanel, BorderLayout.NORTH)
         add(middlePanel, BorderLayout.CENTER)
-        add(bottomPanel, BorderLayout.SOUTH)
+        add(contentPanel, BorderLayout.SOUTH)
 
         KeyListener(listOf(Pair(NativeKeyEvent.VC_F12, fun (): Unit {
             if (!systemRecorder.isRecording) {
@@ -97,6 +155,9 @@ class App : JFrame("Eivitool") {
 
         audioVisualizer.start(AudioSystem.getMixerInfo()[config.recordAudioSystem])
         this.restartTimer()
+        Timer(1000 ) {
+            this.system()
+        }.start()
     }
 
     private fun applyConfigChanges() {
@@ -109,6 +170,17 @@ class App : JFrame("Eivitool") {
             this.update()
         }
         timer?.start()
+    }
+
+    private fun system() {
+        if (systemRecorder.isRecording) {
+            timeLabel.foreground = Color.RED
+        } else {
+            timeLabel.foreground = Color.WHITE
+        }
+        timeLabel.text = systemRecorder.afterTime()
+        cpuLabel.text = "CPU: ${getUsageCpu()}"
+        memoryeLabel.text = "Heap: ${getUsageMemory()}"
     }
 
     private fun update() {

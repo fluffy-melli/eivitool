@@ -20,7 +20,7 @@ class AudioVisualizer : JPanel() {
 
     init {
         preferredSize = Dimension(maxBars * 4, 25)
-        background = Color.BLACK
+        background = Color(43, 45, 48)
         timer = Timer(16) { repaint() }
         timer.start()
     }

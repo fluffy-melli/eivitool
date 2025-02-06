@@ -31,6 +31,7 @@ class SettingsDialog(parent: JFrame, config: AppConfig, audio: AudioVisualizer) 
     }
 
     init {
+        contentPane.background = Color(43, 45, 48)
         setLayout(GridBagLayout())
         val gbc = GridBagConstraints().apply {
             insets = Insets(10, 10, 10, 10)
@@ -63,49 +64,49 @@ class SettingsDialog(parent: JFrame, config: AppConfig, audio: AudioVisualizer) 
 
         gbc.gridx = 0
         gbc.gridy = 0
-        add(JLabel("디스플레이 선택:"), gbc)
+        add(JLabel("디스플레이 선택:").apply { foreground = Color.WHITE }, gbc)
 
         gbc.gridx = 1
         add(displayDropdown, gbc)
 
         gbc.gridx = 0
         gbc.gridy = 1
-        add(JLabel("오디오 장치 선택:"), gbc)
+        add(JLabel("오디오 장치 선택:").apply { foreground = Color.WHITE }, gbc)
 
         gbc.gridx = 1
         add(audioDropdown, gbc)
 
         gbc.gridx = 0
         gbc.gridy = 2
-        add(JLabel("출력 해상도 선택:"), gbc)
+        add(JLabel("출력 해상도 선택:").apply { foreground = Color.WHITE }, gbc)
 
         gbc.gridx = 1
         add(resolutionDropdown, gbc)
 
         gbc.gridx = 0
         gbc.gridy = 3
-        add(JLabel("FPS 선택:"), gbc)
+        add(JLabel("FPS 선택:").apply { foreground = Color.WHITE }, gbc)
 
         gbc.gridx = 1
         add(fpsInput, gbc)
 
         gbc.gridx = 0
         gbc.gridy = 4
-        add(JLabel("비디오 비트레이트 (KB):"), gbc)
+        add(JLabel("비디오 비트레이트 (KB):").apply { foreground = Color.WHITE }, gbc)
 
         gbc.gridx = 1
         add(videoBitrateInput, gbc)
 
         gbc.gridx = 0
         gbc.gridy = 5
-        add(JLabel("오디오 비트레이트 (KB):"), gbc)
+        add(JLabel("오디오 비트레이트 (KB):").apply { foreground = Color.WHITE }, gbc)
 
         gbc.gridx = 1
         add(audioBitrateInput, gbc)
 
         gbc.gridx = 0
         gbc.gridy = 6
-        add(JLabel("녹화 저장 경로:"), gbc)
+        add(JLabel("녹화 저장 경로:").apply { foreground = Color.WHITE }, gbc)
 
         gbc.gridx = 1
         add(folderChooserButton, gbc)
