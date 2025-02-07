@@ -1,11 +1,17 @@
 package eivitool.utils
 
 import org.bytedeco.ffmpeg.global.avcodec
+import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.javacv.FFmpegFrameRecorder
+import org.bytedeco.javacv.FFmpegLogCallback
+import org.bytedeco.javacv.Frame
 import org.bytedeco.javacv.Java2DFrameConverter
 import java.awt.*
+import java.awt.image.BufferedImage
 import java.io.*
 import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import javax.sound.sampled.*
 
 class SystemRecorder {
@@ -19,7 +25,7 @@ class SystemRecorder {
     private val robot = Robot()
     private val screenBounds = mutableMapOf<Int, Rectangle>()
 
-    private val executor = Executors.newFixedThreadPool(2)
+    private var executor = Executors.newSingleThreadExecutor()
 
     init {
         GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices.forEachIndexed { index, screen ->
@@ -41,19 +47,24 @@ class SystemRecorder {
         startTime = System.currentTimeMillis()
         recorder = FFmpegFrameRecorder("${config.recordFolderPath}/$outfile.mp4", config.recordResolution[0], config.recordResolution[1], 2).apply {
             format = "mp4"
+
             videoCodec = avcodec.AV_CODEC_ID_H264
-            videoBitrate = config.recordVideoBitrateKB*1000
+            pixelFormat = avutil.AV_PIX_FMT_YUV420P
+            videoBitrate = config.recordVideoBitrateKB * 1000
             frameRate = config.recordFPS.toDouble()
+            gopSize = config.recordFPS * 2
+            videoQuality = 30.0
+
+            setOption("preset", "ultrafast")
+            setOption("crf", "23")
+            setOption("tune", "zerolatency")
 
             audioChannels = 2
             audioCodec = avcodec.AV_CODEC_ID_AAC
-            audioBitrate = config.recordAudioBitrateKB*1000
-
-            setVideoOption("bEnableFrameSkip", "1")
-
-            start()
+            audioBitrate = config.recordAudioBitrateKB * 1000
         }
 
+        recorder?.start()
         startAudioRecorder(audioDevice)
         startVideoRecorder(config.recordDisplay, config.recordFPS, config.recordResolution[0], config.recordResolution[1])
     }
@@ -86,14 +97,17 @@ class SystemRecorder {
             val frameTimeNanos = 1_000_000_000L / fps
             try {
                 val bounds = screenBounds[display]
+                val converter = Java2DFrameConverter()
+                if (executor.isTerminated() || executor.isShutdown()) {
+                    executor = Executors.newSingleThreadExecutor()
+                }
                 while (isRecording) {
                     val startTime = System.nanoTime()
+                    val image = robot.createScreenCapture(bounds)
                     executor.submit {
                         try {
-                            val image = robot.createScreenCapture(bounds)
-                            val resizedImage = ResizeImage(image, width, height)
-                            val converter = Java2DFrameConverter()
-                            val frame = converter.convert(resizedImage)
+                            val resized = ResizeImage(image, width, height)
+                            val frame = converter.convert(resized)
                             recorder?.record(frame)
                         } catch (e: Exception) {
                             e.printStackTrace()
@@ -114,9 +128,9 @@ class SystemRecorder {
         isRecording = false
         try {
             audioThread?.join()
-            videoThread?.join()
             lines?.stop()
             lines?.close()
+            executor.shutdown()
             recorder?.apply {
                 stop()
                 release()
