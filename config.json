@@ -1,0 +1,13 @@
+{
+  "recordFPS": 20,
+  "recordDisplay": 0,
+  "recordResolution": [
+    1920,
+    1080
+  ],
+  "recordFolderPath": "/home/fluffy-melli/비디오",
+  "recordAudioSystem": 2,
+  "recordResolutionIndex": 0,
+  "recordVideoBitrateKB": 4000,
+  "recordAudioBitrateKB": 128
+}

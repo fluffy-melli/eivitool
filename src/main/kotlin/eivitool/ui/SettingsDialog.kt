@@ -31,6 +31,8 @@ class SettingsDialog(parent: JFrame, config: AppConfig, audio: AudioVisualizer) 
     }
 
     init {
+        var size = GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices[config.recordDisplay].defaultConfiguration.bounds
+        var resolutionList = GetResolutionList(size.width, size.height)
         contentPane.background = Color(43, 45, 48)
         setLayout(GridBagLayout())
         val gbc = GridBagConstraints().apply {
@@ -44,6 +46,8 @@ class SettingsDialog(parent: JFrame, config: AppConfig, audio: AudioVisualizer) 
         displayDropdown.selectedIndex = config.recordDisplay
         displayDropdown.addActionListener {
             config.recordDisplay = displayDropdown.selectedIndex
+            size = GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices[config.recordDisplay].defaultConfiguration.bounds
+            resolutionList = GetResolutionList(size.x, size.y)
         }
 
         val deviceList = AudioSystem.getMixerInfo()
@@ -54,7 +58,6 @@ class SettingsDialog(parent: JFrame, config: AppConfig, audio: AudioVisualizer) 
             audio.start(deviceList[config.recordAudioSystem])
         }
 
-        val resolutionList = GetResolutionList()
         resolutionDropdown.model = DefaultComboBoxModel(resolutionList.map { it.first }.toTypedArray())
         resolutionDropdown.selectedIndex = config.recordResolutionIndex
         resolutionDropdown.addActionListener {

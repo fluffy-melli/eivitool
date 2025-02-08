@@ -18,7 +18,7 @@ class App : JFrame("Eivitool") {
     private val timeLabel: JLabel
     private val cpuLabel: JLabel
     private val memoryeLabel: JLabel
-
+    private val fpsLabel: JLabel
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
@@ -99,6 +99,10 @@ class App : JFrame("Eivitool") {
                 foreground = Color.WHITE
             }
 
+            fpsLabel = JLabel("FPS: 0/${config.recordFPS}").apply {
+                foreground = Color.WHITE
+            }
+
             val gbc = GridBagConstraints().apply {
                 insets = Insets(10, 30, 10, 30)
                 anchor = GridBagConstraints.WEST
@@ -110,6 +114,10 @@ class App : JFrame("Eivitool") {
             }
 
             val line2 = JLabel("|").apply {
+                foreground = Color.WHITE
+            }
+
+            val line3 = JLabel("|").apply {
                 foreground = Color.WHITE
             }
 
@@ -127,6 +135,12 @@ class App : JFrame("Eivitool") {
 
             gbc.gridx = 4
             add(cpuLabel, gbc)
+
+            gbc.gridx = 5
+            add(line3, gbc)
+
+            gbc.gridx = 6
+            add(fpsLabel, gbc)
 
         }
 
@@ -181,10 +195,12 @@ class App : JFrame("Eivitool") {
         timeLabel.text = systemRecorder.afterTime()
         cpuLabel.text = "CPU: ${getUsageCpu()}"
         memoryeLabel.text = "Heap: ${getUsageMemory()}"
+        fpsLabel.text = "FPS: ${systemRecorder.FPS.fps}/${config.recordFPS}"
     }
 
     private fun update() {
-        var image: BufferedImage = getDisplayCapture(config.recordDisplay)
+        if (!systemRecorder.isRecording) return
+        var image: BufferedImage = systemRecorder.lastFrame
         image = PaddingImage(image, this.width, this.height - 140)
         label.icon = ImageIcon(image)
     }
