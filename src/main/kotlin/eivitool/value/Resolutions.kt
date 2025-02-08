@@ -24,3 +24,10 @@ fun GetResolutionList(w:Int, h:Int): List<Triple<String, Int, Int>> {
         Triple("640x360", 640, 360)
     )
 }
+
+fun RecordType(): List<Pair<String, Boolean>> {
+    return listOf(
+        Pair("중지", false),
+        Pair("활성화", true),
+    )
+}

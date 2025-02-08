@@ -14,6 +14,7 @@ data class AppConfig(
     var recordResolutionIndex: Int = 0,
     var recordVideoBitrateKB: Int = 200,
     var recordAudioBitrateKB: Int = 128,
+    var recordClip: Boolean = false,
 )
 
 object Config {

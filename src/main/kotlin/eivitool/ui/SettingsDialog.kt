@@ -4,17 +4,19 @@ import java.awt.*
 import javax.swing.*
 import eivitool.utils.*
 import eivitool.value.GetResolutionList
+import eivitool.value.RecordType
 import javax.sound.sampled.AudioSystem
 import java.io.File
 
 class SettingsDialog(parent: JFrame, config: AppConfig, audio: AudioVisualizer) : JDialog(parent, "설정", true) {
     private val displayDropdown: JComboBox<String> = JComboBox()
     private val audioDropdown: JComboBox<String> = JComboBox()
+    private val readerTypeDropdown: JComboBox<String> = JComboBox()
     private val resolutionDropdown: JComboBox<String> = JComboBox()
     private val fpsInput: JTextField = JTextField(config.recordFPS.toString(), 5)
     private val videoBitrateInput: JTextField = JTextField(config.recordVideoBitrateKB.toString(), 5)
     private val audioBitrateInput: JTextField = JTextField(config.recordAudioBitrateKB.toString(), 5)
-    val folderChooserButton: JButton = JButton(paddingText(config.recordFolderPath)).apply {
+    private val folderChooserButton: JButton = JButton(paddingText(config.recordFolderPath)).apply {
         background = Color.WHITE
         addActionListener {
             val folderChooser = JFileChooser().apply {
@@ -34,7 +36,7 @@ class SettingsDialog(parent: JFrame, config: AppConfig, audio: AudioVisualizer) 
         var size = GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices[config.recordDisplay].defaultConfiguration.bounds
         var resolutionList = GetResolutionList(size.width, size.height)
         contentPane.background = Color(43, 45, 48)
-        setLayout(GridBagLayout())
+        layout = GridBagLayout()
         val gbc = GridBagConstraints().apply {
             insets = Insets(10, 10, 10, 10)
             anchor = GridBagConstraints.WEST
@@ -63,6 +65,13 @@ class SettingsDialog(parent: JFrame, config: AppConfig, audio: AudioVisualizer) 
         resolutionDropdown.addActionListener {
             config.recordResolutionIndex = resolutionDropdown.selectedIndex
             config.recordResolution = listOf(resolutionList[resolutionDropdown.selectedIndex].second, resolutionList[resolutionDropdown.selectedIndex].third)
+        }
+
+        val typeList = RecordType()
+        readerTypeDropdown.model = DefaultComboBoxModel(typeList.map { it.first }.toTypedArray())
+        readerTypeDropdown.selectedIndex = if (config.recordClip) 1 else 0
+        readerTypeDropdown.addActionListener {
+            config.recordClip = typeList[readerTypeDropdown.selectedIndex].second
         }
 
         gbc.gridx = 0
@@ -114,6 +123,13 @@ class SettingsDialog(parent: JFrame, config: AppConfig, audio: AudioVisualizer) 
         gbc.gridx = 1
         add(folderChooserButton, gbc)
 
+        gbc.gridx = 0
+        gbc.gridy = 7
+        add(JLabel("클립 활성화 (베타):").apply { foreground = Color.WHITE }, gbc)
+
+        gbc.gridx = 1
+        add(readerTypeDropdown, gbc)
+
         val saveButton = JButton("저장")
         saveButton.addActionListener {
             config.recordFPS = fpsInput.text.toIntOrNull() ?: 30
@@ -124,7 +140,7 @@ class SettingsDialog(parent: JFrame, config: AppConfig, audio: AudioVisualizer) 
         }
 
         gbc.gridx = 0
-        gbc.gridy = 7
+        gbc.gridy = 8
         gbc.gridwidth = 2
         add(saveButton, gbc)
 

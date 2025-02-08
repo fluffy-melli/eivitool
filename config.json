@@ -8,6 +8,7 @@
   "recordFolderPath": "/home/fluffy-melli/비디오",
   "recordAudioSystem": 2,
   "recordResolutionIndex": 0,
-  "recordVideoBitrateKB": 4000,
-  "recordAudioBitrateKB": 128
+  "recordVideoBitrateKB": 2500,
+  "recordAudioBitrateKB": 128,
+  "recordClip": false
 }

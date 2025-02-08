@@ -11,7 +11,7 @@ import eivitool.utils.*
 class App : JFrame("Eivitool") {
     private val label = JLabel()
     private var timer: Timer? = null
-    private val systemRecorder = SystemRecorder()
+    private val recorder = Recorder()
     private var config = Config.load()
     private val audioVisualizer = AudioVisualizer()
     private val recordButton = JButton("녹화 시작")
@@ -19,6 +19,7 @@ class App : JFrame("Eivitool") {
     private val cpuLabel: JLabel
     private val memoryeLabel: JLabel
     private val fpsLabel: JLabel
+    private val clipLabel: JLabel
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
@@ -54,14 +55,14 @@ class App : JFrame("Eivitool") {
             background = Color(43, 45, 48)
 
             recordButton.addActionListener {
-                if (!systemRecorder.isRecording) {
+                if (!recorder.isRecording) {
                     recordButton.text = "녹화 종료"
-                    systemRecorder.start(config, AudioSystem.getMixerInfo()[config.recordAudioSystem], timeStamp())
+                    recorder.start(config, timeStamp())
                     SendDesktopAlarm("화면 녹화 시작", "화면 녹화가 시작되었습니다.")
                 } else {
                     recordButton.text = "녹화 시작"
                     SendDesktopAlarm("인코딩 시작", "화면 녹화가 중지되었습니다. 인코딩을 시작할게요.")
-                    systemRecorder.stop()
+                    recorder.stop()
                     SendDesktopAlarm("인코딩 성공", "인코딩이 성공적으로 실행되었어요.")
                 }
             }
@@ -103,6 +104,10 @@ class App : JFrame("Eivitool") {
                 foreground = Color.WHITE
             }
 
+            clipLabel = JLabel("CLIP: 0/0").apply {
+                foreground = Color.WHITE
+            }
+
             val gbc = GridBagConstraints().apply {
                 insets = Insets(10, 30, 10, 30)
                 anchor = GridBagConstraints.WEST
@@ -121,25 +126,35 @@ class App : JFrame("Eivitool") {
                 foreground = Color.WHITE
             }
 
+            val line4 = JLabel("|").apply {
+                foreground = Color.WHITE
+            }
+
             gbc.gridx = 0
             add(timeLabel, gbc)
 
             gbc.gridx = 1
-            add(line1, gbc)
+            add(line4, gbc)
 
             gbc.gridx = 2
-            add(memoryeLabel, gbc)
+            add(clipLabel, gbc)
 
             gbc.gridx = 3
-            add(line2, gbc)
+            add(line1, gbc)
 
             gbc.gridx = 4
-            add(cpuLabel, gbc)
+            add(memoryeLabel, gbc)
 
             gbc.gridx = 5
-            add(line3, gbc)
+            add(line2, gbc)
 
             gbc.gridx = 6
+            add(cpuLabel, gbc)
+
+            gbc.gridx = 7
+            add(line3, gbc)
+
+            gbc.gridx = 8
             add(fpsLabel, gbc)
 
         }
@@ -154,20 +169,21 @@ class App : JFrame("Eivitool") {
         add(middlePanel, BorderLayout.CENTER)
         add(contentPanel, BorderLayout.SOUTH)
 
-        KeyListener(listOf(Pair(NativeKeyEvent.VC_F12, fun (): Unit {
-            if (!systemRecorder.isRecording) {
+        KeyListener(listOf(Pair(NativeKeyEvent.VC_F12, fun () {
+            if (!recorder.isRecording) {
                 recordButton.text = "녹화 종료"
-                systemRecorder.start(config, AudioSystem.getMixerInfo()[config.recordAudioSystem], timeStamp())
+                recorder.start(config, timeStamp())
                 SendDesktopAlarm("화면 녹화 시작", "화면 녹화가 시작되었습니다.")
             } else {
                 recordButton.text = "녹화 시작"
                 SendDesktopAlarm("인코딩 시작", "화면 녹화가 중지되었습니다. 인코딩을 시작할게요.")
-                systemRecorder.stop()
+                recorder.stop()
                 SendDesktopAlarm("인코딩 성공", "인코딩이 성공적으로 실행되었어요.")
             }
         })))
 
         audioVisualizer.start(AudioSystem.getMixerInfo()[config.recordAudioSystem])
+        recorder.StartCacheing(config, AudioSystem.getMixerInfo()[config.recordAudioSystem])
         this.restartTimer()
         Timer(1000 ) {
             this.system()
@@ -187,21 +203,21 @@ class App : JFrame("Eivitool") {
     }
 
     private fun system() {
-        if (systemRecorder.isRecording) {
+        if (recorder.isRecording) {
             timeLabel.foreground = Color.RED
         } else {
             timeLabel.foreground = Color.WHITE
         }
-        timeLabel.text = systemRecorder.afterTime()
+        timeLabel.text = recorder.afterTime()
         cpuLabel.text = "CPU: ${getUsageCpu()}"
         memoryeLabel.text = "Heap: ${getUsageMemory()}"
-        fpsLabel.text = "FPS: ${systemRecorder.FPS.fps}/${config.recordFPS}"
     }
 
     private fun update() {
-        if (!systemRecorder.isRecording) return
-        var image: BufferedImage = systemRecorder.lastFrame
+        var image: BufferedImage = recorder.lastFrame
         image = PaddingImage(image, this.width, this.height - 140)
         label.icon = ImageIcon(image)
+        fpsLabel.text = "FPS: ${recorder.FPS.fps}/${config.recordFPS}"
+        clipLabel.text = "CLIP: ${recorder.cacheing.audioQueue?.size}/${recorder.cacheing.frameQueue?.size}"
     }
 }
